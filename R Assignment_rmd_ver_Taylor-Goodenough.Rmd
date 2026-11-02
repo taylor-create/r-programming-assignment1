@@ -1,0 +1,164 @@
+---
+title: "Assignment 1 R Programming"
+author: "Taylor Goodenough"
+date: "2026-10-28"
+output:
+  pdf_document: default
+---
+```{r load-data}
+Diabetes_binary_data = read.csv("~/Health Informatics Program/Fall2026/COMP4033/R Files/diabetes_binary_5050split_health_indicators_BRFSS2015.csv")
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Install tidyverse package
+library("tidyverse")
+```
+
+```{r}
+#Print structure of dataset (tidyverse version of str command)
+glimpse(Diabetes_binary_data)
+```
+
+```{r}
+# List the variables of the data set/column names
+names(Diabetes_binary_data)
+```
+
+```{r}
+# Print the top 15 rows of data set
+head(Diabetes_binary_data, n=15)
+```
+
+```{r}
+#user defined function - if statement checks if the values in the diabetes_binary are equal to 1
+#and if they are the function returns "yes" and the else statement returns "no" if the value of 
+#diabetes_binary is NOT equal to 1
+has_diabetes = function(Diabetes_binary) {
+  if (Diabetes_binary == 1) {
+    return("Yes")
+  } else {
+    return("No")
+  }
+}
+```
+
+```{r}
+# prints the result of the has_diabetes function at the 1st row in the diabetes_binary column
+print(has_diabetes(1))
+```
+
+```{r}
+# dependent variable is diabetes_binary, the rest are independent variables
+# selects the HighBP, HighChol, BMI, and Smoker columns to make the independent variables
+diabetes_predictors = Diabetes_binary_data[, c("HighBP", "HighChol", "BMI", "Smoker")]
+# selects the Diabetes_diagnosis column to make the dependent variable, named diabetes_diagnosis
+diabetes_diagnosis = Diabetes_binary_data$Diabetes_binary
+# combines the columns into a new dataframe called diabetes_analysis
+diabetes_analysis = cbind(diabetes_predictors, diabetes_diagnosis)
+head(diabetes_analysis)
+```
+
+```{r}
+# omits any missing values in the dataset
+Diabetes_binary_data = na.omit(Diabetes_binary_data)
+nrow(Diabetes_binary_data)
+```
+
+```{r}
+# identifies duplicated data in data set and then returns the number of duplicate rows
+sum(duplicated(Diabetes_binary_data))
+```
+
+```{r}
+# removes any duplicates in data set and returns only the ones that are distinct and displays 
+# only the first few rows
+Diabetes_binary_data = Diabetes_binary_data %>% distinct()
+head(Diabetes_binary_data)
+```
+
+```{r}
+# arranges data by descending age and displays only the first few rows
+Diabetes_binary_data = Diabetes_binary_data %>% arrange(desc(Age))
+head(Diabetes_binary_data)
+```
+
+```{r}
+# renames columns
+names(Diabetes_binary_data)[names(Diabetes_binary_data) == "Diabetes_binary"] = "Diabetes_diagnosis"
+names(Diabetes_binary_data)[names(Diabetes_binary_data) == "Veggies"] = "Eats_enough_veggies"
+names(Diabetes_binary_data)[names(Diabetes_binary_data) == "GenHlth"] = "General_health"
+names(Diabetes_binary_data)[names(Diabetes_binary_data) == "AnyHealthcare"] = "Has_any_healthcare"
+names(Diabetes_binary_data)[names(Diabetes_binary_data) == "MentHlth"] = "Mental_health"
+```
+
+```{r}
+# make a new column called socioeconomic_score and it will be the result of income x education
+# and displays first few rows
+Diabetes_binary_data = Diabetes_binary_data %>% mutate(SocioeconomicScore = Income*Education)
+head(Diabetes_binary_data)
+```
+
+```{r}
+# create a training set using random number generator engine
+set.seed(1234)
+training_set = Diabetes_binary_data %>% sample_frac(0.80)
+nrow(training_set)
+```
+
+```{r}
+# Prints the summary statistics of data set
+view_all = summary(Diabetes_binary_data)
+print(view_all)
+```
+
+```{r}
+# Finds the mean of the BMI column
+BMI_mean = mean(Diabetes_binary_data$BMI)
+```
+
+```{r}
+# Finds the median for the BMI column
+BMI_median = median(Diabetes_binary_data$BMI)
+```
+
+```{r}
+# Finds mode of the BMI column using a user-defined function
+# unique(x) extracts the unique values in the BMI column
+# match(x, values) matches each observation to its position in the list of distinct
+# values, where values = unique(x)
+# tabulate() counts how many times each distinct value occurs
+# which.max() identifies the position of the highest frequency
+# values[] returns the value at that position in the newly created vector
+find_mode = function(x) {
+  values = unique(x)
+  values[which.max(tabulate(match(x, values)))]
+}
+# calls the find_mode function passing the BMI data from the data set and stores it in 
+# a variable called "BMI_mode"
+BMI_mode = find_mode(Diabetes_binary_data$BMI)
+```
+
+```{r}
+# Finds range of BMI column data
+BMI_range = range(Diabetes_binary_data$BMI)
+```
+
+```{r scatter-plot, fig.width=5, fig.height=4}
+# Creates a scatter plot for the income and BMI column data
+ggplot(Diabetes_binary_data, aes(x = Income, y = BMI)) + geom_point(size = 1, color = "coral")
+```
+
+```{r bar-graph, fig.width=5, fig.height=4}
+# Creates a bar graph for the HeartDiseaseorAttack column data
+ggplot(Diabetes_binary_data, aes(x = HeartDiseaseorAttack)) + geom_bar(fill = "aquamarine")
+```
+
+```{r}
+# Finds the pearson correlation between Diabetes_diagnosis and BMI
+BMI_corr = cor(Diabetes_binary_data$Diabetes_diagnosis, Diabetes_binary_data$BMI, method = "pearson")
+```
+
